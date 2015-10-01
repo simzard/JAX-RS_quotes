@@ -8,6 +8,7 @@ package rest;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import exceptions.QuoteNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -61,30 +62,51 @@ public class REST_Quotes {
     @GET
     @Path("{id}")
     @Produces("application/json")
-    public String getQuoteByIdJSON(@PathParam("id") String id) {
+    public String getQuoteById(@PathParam("id") String id)
+            throws QuoteNotFoundException, Throwable {
 
-        JsonObject quoteOutJSON = new JsonObject();
+        if (id.equals("")) {
+            throw new QuoteNotFoundException("Quote with requested id not found");
+        }
+        
         int key = -1;
         try {
             key = Integer.parseInt(id);
         } catch (NumberFormatException e) {
             // do something clever
         }
-        quoteOutJSON.addProperty("quote", quotes.get(key));
-        String jsonResponse = new Gson().toJson(quoteOutJSON);
-        return jsonResponse;
+
+//        if (key == 5) 
+//            throw new Exception("Internal server Error, we are very sorry for the inconvenience");
+        
+        if (quotes.containsKey(key)) {
+
+            JsonObject quoteOutJSON = new JsonObject();
+
+            quoteOutJSON.addProperty("quote", quotes.get(key));
+            String jsonResponse = new Gson().toJson(quoteOutJSON);
+            return jsonResponse;
+        } else {
+            throw new QuoteNotFoundException("Quote with requested id not found");
+        }
     }
 
     @GET
     @Path("random")
     @Produces("application/json")
-    public String getRandomQuoteJSON() {
+    public String getRandomQuote()
+            throws QuoteNotFoundException {
 
-        JsonObject quoteOutJSON = new JsonObject();
-        int key = random.nextInt(quotes.size()) + 1;
-        quoteOutJSON.addProperty("quote", quotes.get(key));
-        String jsonResponse = new Gson().toJson(quoteOutJSON);
-        return jsonResponse;
+        if (!quotes.isEmpty()) {
+
+            JsonObject quoteOutJSON = new JsonObject();
+            int key = random.nextInt(quotes.size()) + 1;
+            quoteOutJSON.addProperty("quote", quotes.get(key));
+            String jsonResponse = new Gson().toJson(quoteOutJSON);
+            return jsonResponse;
+        } else {
+            throw new QuoteNotFoundException(("No Quotes Created yet"));
+        }
     }
 
     @POST
@@ -116,11 +138,10 @@ public class REST_Quotes {
     @Path("{id}")
     @Consumes("application/json")
     @Produces("application/json")
-    public String changeQuoteByIdJSON(@PathParam("id") String id, String quoteText) {
-        //Get the quote text from the provided Json
-        JsonObject quoteInJSON = new JsonParser().parse(quoteText).getAsJsonObject();
-        String quoteTextInsert = quoteInJSON.get("quote").getAsString();
-
+    public String changeQuoteByIdJSON(@PathParam("id") String id, String quoteText)
+            throws QuoteNotFoundException {
+        
+        
         int key = -1;
         try {
             key = Integer.parseInt(id);
@@ -128,20 +149,30 @@ public class REST_Quotes {
             // do something clever
         }
 
-        quotes.put(key, quoteTextInsert);
+        if (quotes.containsKey(key)) {
 
-        JsonObject quoteOutJSON = new JsonObject();
-        quoteOutJSON.addProperty("id", key);
-        quoteOutJSON.addProperty("quote", quotes.get(key));
-        String jsonResponse = new Gson().toJson(quoteOutJSON);
+            //Get the quote text from the provided Json
+            JsonObject quoteInJSON = new JsonParser().parse(quoteText).getAsJsonObject();
+            String quoteTextInsert = quoteInJSON.get("quote").getAsString();
 
-        return jsonResponse;
+            quotes.put(key, quoteTextInsert);
+
+            JsonObject quoteOutJSON = new JsonObject();
+            quoteOutJSON.addProperty("id", key);
+            quoteOutJSON.addProperty("quote", quotes.get(key));
+            String jsonResponse = new Gson().toJson(quoteOutJSON);
+
+            return jsonResponse;
+        } else {
+            throw new QuoteNotFoundException("Quote with requested id not found");
+        }
     }
 
     @DELETE
     @Path("{id}")
     @Produces("application/json")
-    public String deleteQuoteById(@PathParam("id") String id) {
+    public String deleteQuoteById(@PathParam("id") String id)
+            throws QuoteNotFoundException {
 
         int key = -1;
         try {
@@ -150,12 +181,17 @@ public class REST_Quotes {
             // do something clever
         }
 
-        JsonObject quoteOutJSON = new JsonObject();
-        quoteOutJSON.addProperty("quote", quotes.get(key));
-        String jsonResponse = new Gson().toJson(quoteOutJSON);
+        if (quotes.containsKey(key)) {
 
-        quotes.remove(key);
+            JsonObject quoteOutJSON = new JsonObject();
+            quoteOutJSON.addProperty("quote", quotes.get(key));
+            String jsonResponse = new Gson().toJson(quoteOutJSON);
 
-        return jsonResponse;
+            quotes.remove(key);
+
+            return jsonResponse;
+        } else {
+            throw new QuoteNotFoundException("Quote with requested id not found");
+        }
     }
 }

@@ -6,26 +6,33 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>Random Quote of the Day</title>
+        <title>Quotes</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+        <link rel="stylesheet" type="text/css" href="resources/bootstrap.min.css">
+        <!-- Optional Bootstrap theme -->
+        <link rel="stylesheet" href="resources/bootstrap-theme.min.css">
+
         <script type="text/javascript" src="resources/jquery-2.1.4.js"></script>
+        <script type="text/javascript" src="resources/bootstrap.min.js"></script>
 
         <script type="text/javascript">
 
             function newQuote() {
                 $.ajax({
                     url: "api/quote",
-                    data: JSON.stringify({quote : $("#theQuoteEdit").val()}),                        
+                    data: JSON.stringify({quote: $("#theQuoteEdit").val()}),
                     type: "POST",
                     contentType: "application/json; charset=utf-8"
-                    
+
 
                 }).done(function (dataFromServer) {
                     $("#theQuoteEdit").val(dataFromServer.quote);
-                }).fail(function () {
-                    alert("UUUUUUpsssss");
+                    $("#error").show().html("Inserted new quote");
+                }).fail(function (error) {
+                    var json = error.responseJSON;
+                    $("#error").show().html(json.message);
                 });
             }
 
@@ -37,57 +44,85 @@ and open the template in the editor.
 
                 }).done(function (dataFromServer) {
                     $("#theQuote").text(dataFromServer.quote);
-                }).fail(function () {
-                    alert("UUUUUUpsssss");
+                    $("#error").show().html("Loaded random quote");
+                }).fail(function (error) {
+                    var json = error.responseJSON;
+                    $("#error").show().html(json.message);
+
                 });
 
             }
-            
+
             function getQuote() {
+                $("#error").show().html("");
                 $.ajax({
                     url: "api/quote/" + $("#qid").val(),
                     type: "GET",
                     datatype: "json"
-                    
+
                 }).done(function (dataFromServer) {
                     $("#theQuoteEdit").val(dataFromServer.quote);
-                }).fail(function () {
-                    alert("UUUUUUpsssss");
+                    $("#error").show().html("Loaded quote");
+                }).fail(function (error) {
+                    var qidString = $("#qid").val();
+                    if (qidString == "") {
+                        $("#error").show().html("Please enter a valid id!");
+
+                    } else {
+                        var json = error.responseJSON;
+                        $("#error").show().html(json.message);
+                    }
                 });
             }
-            
+
             function editQuote() {
-                
+
                 $.ajax({
                     url: "api/quote/" + $("#qid").val(),
                     type: "PUT",
-                    data: JSON.stringify({quote : $("#theQuoteEdit").val()}),                        
+                    data: JSON.stringify({quote: $("#theQuoteEdit").val()}),
                     datatype: "json",
                     contentType: "application/json; charset=utf-8"
-                    
+
                 }).done(function (dataFromServer) {
                     $("#theQuoteEdit").val(dataFromServer.quote);
-                }).fail(function () {
-                    alert("UUUUUUpsssss");
+                    $("#error").show().html("Updated quote");
+                }).fail(function (error) {
+                    var qidString = $("#qid").val();
+                    if (qidString == "") {
+                        $("#error").show().html("Please enter a valid id!");
+
+                    } else {
+                        var json = error.responseJSON;
+                        $("#error").show().html(json.message);
+                    }
                 });
             }
-            
+
             function deleteQuote() {
                 $.ajax({
                     url: "api/quote/" + $("#qid").val(),
                     type: "DELETE",
                     datatype: "json"
-                    
+
                 }).done(function (dataFromServer) {
                     $("#theQuoteEdit").val(dataFromServer.quote);
-                }).fail(function () {
-                    alert("UUUUUUpsssss");
+                    $("#error").show().html("Deleted quote");
+                }).fail(function (error) {
+                    var qidString = $("#qid").val();
+                    if (qidString == "") {
+                        $("#error").show().html("Please enter a valid id!");
+
+                    } else {
+                        var json = error.responseJSON;
+                        $("#error").show().html(json.message);
+                    }
                 });
             }
-            
+
             $(document).ready(function () {
                 loadRandomQuote();
-                
+
                 $("#newbtn").click(newQuote);
                 $("#getbtn").click(getQuote);
                 $("#rndbtn").click(loadRandomQuote);
@@ -100,7 +135,7 @@ and open the template in the editor.
     <body>
         <h1>Quote of today:</h1>
         <h2 id="theQuote"></h2>
-        
+
         <h2>Quote Editor</h2>
         <div>
             <input id="qid" type="text" placeholder="Enter id">
@@ -111,6 +146,8 @@ and open the template in the editor.
             <button id="delbtn">Delete Quote</button>
         </div>
         <input id="theQuoteEdit" style="width: 60em; margin-top:1em">
+
+        <div id="error" class="alert alert-warning" role="alert"></div>
 
     </body>
 </html>

@@ -23,6 +23,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
 
 /**
  * REST Web Service
@@ -62,13 +63,13 @@ public class REST_Quotes {
     @GET
     @Path("{id}")
     @Produces("application/json")
-    public String getQuoteById(@PathParam("id") String id)
+    public Response getQuoteById(@PathParam("id") String id)
             throws QuoteNotFoundException, Throwable {
 
         if (id.equals("")) {
             throw new QuoteNotFoundException("Quote with requested id not found");
         }
-        
+
         int key = -1;
         try {
             key = Integer.parseInt(id);
@@ -78,14 +79,14 @@ public class REST_Quotes {
 
 //        if (key == 5) 
 //            throw new Exception("Internal server Error, we are very sorry for the inconvenience");
-        
         if (quotes.containsKey(key)) {
 
             JsonObject quoteOutJSON = new JsonObject();
 
             quoteOutJSON.addProperty("quote", quotes.get(key));
             String jsonResponse = new Gson().toJson(quoteOutJSON);
-            return jsonResponse;
+            return Response.ok(jsonResponse).header("Access-Control-Allow-Origin", "*").build();
+
         } else {
             throw new QuoteNotFoundException("Quote with requested id not found");
         }
@@ -94,7 +95,7 @@ public class REST_Quotes {
     @GET
     @Path("random")
     @Produces("application/json")
-    public String getRandomQuote()
+    public Response getRandomQuote()
             throws QuoteNotFoundException {
 
         if (!quotes.isEmpty()) {
@@ -103,7 +104,7 @@ public class REST_Quotes {
             int key = random.nextInt(quotes.size()) + 1;
             quoteOutJSON.addProperty("quote", quotes.get(key));
             String jsonResponse = new Gson().toJson(quoteOutJSON);
-            return jsonResponse;
+            return Response.ok(jsonResponse).header("Access-Control-Allow-Origin", "*").build();
         } else {
             throw new QuoteNotFoundException(("No Quotes Created yet"));
         }
@@ -140,8 +141,7 @@ public class REST_Quotes {
     @Produces("application/json")
     public String changeQuoteByIdJSON(@PathParam("id") String id, String quoteText)
             throws QuoteNotFoundException {
-        
-        
+
         int key = -1;
         try {
             key = Integer.parseInt(id);
